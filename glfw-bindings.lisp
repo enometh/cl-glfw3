@@ -62,6 +62,7 @@
    set-window-monitor
    poll-events
    wait-events
+   wait-events-timeout
    post-empty-event
    get-input-mode
    set-input-mode
@@ -685,6 +686,9 @@ Returns previously set callback."
 (defcfun ("glfwPollEvents" poll-events) (float-traps-masked :void))
 
 (defcfun ("glfwWaitEvents" wait-events) (float-traps-masked :void))
+
+(defcfun ("glfwWaitEventsTimeout" wait-events-timeout) (float-traps-masked :void)
+  (seconds :int))
 
 (defcfun ("glfwPostEmptyEvent" post-empty-event) :void)
 
