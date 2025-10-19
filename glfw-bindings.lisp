@@ -317,10 +317,12 @@ CFFI's defcallback that takes care of GLFW specifics."
   (:menu 348))
 
 (defbitfield (mod-keys)
-  :shift
-  :control
-  :alt
-  :super)
+  (:shift #x01)
+  (:control #x02)
+  (:alt #x04)
+  (:super #x08)
+  (:caps-lock #x10)
+  (:num-lock #x20))
 
 (defcenum (mouse)
   (:1 0)
