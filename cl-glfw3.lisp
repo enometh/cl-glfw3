@@ -163,12 +163,16 @@
 			(stereo nil stereo-supplied-p)
 			(srgb-capable nil)
 			(client-api :opengl-api client-api-supplied-p)
+			(doublebuffer nil doublebuffer-supplied-p)
+		        (context-creation-api nil context-creation-api-supplied-p)
 			(context-version-major 1)
 			(context-version-minor 0)
 			(context-robustness :no-robustness)
 			(opengl-forward-compat nil opengl-forward-compat-supplied-p)
 			(opengl-debug-context nil)
-			(opengl-profile :opengl-any-profile opengl-profile-supplied-p))
+			(opengl-profile :opengl-any-profile opengl-profile-supplied-p)
+			(context-no-error nil)
+			(context-release-behavior :release-behavior-none))
   "This function handles all window hints.
 
 MONITOR: The monitor on which the window should be full-screen.
@@ -182,6 +186,9 @@ SHARED: The window whose context to share resources with."
 					    ,key
 					    (cffi:convert-to-foreign ,name ,type))
 			  if (find key '(:stereo :client-api :opengl-forward-compat
+					 :doublebuffer
+					 :context-creation-api
+					 :opengl-forward-compat
 					 :opengl-profile))
 			  collect `(when ,(intern (concatenate 'string (string name)
 							       "-SUPPLIED-P"))
@@ -198,15 +205,19 @@ SHARED: The window whose context to share resources with."
      (aux-buffers :int)
      (samples :int)
      (refresh-rate :int)
+     (doublebuffer :boolean)
      (stereo :boolean)
      (srgb-capable :boolean)
      (client-api '%glfw::opengl-api)
+     (context-creation-api '%glfw::creation-api)
      (context-version-major :int)
      (context-version-minor :int)
      (context-robustness '%glfw::robustness)
      (opengl-forward-compat :boolean)
      (opengl-debug-context :boolean)
-     (opengl-profile '%glfw::opengl-profile)))
+     (opengl-profile '%glfw::opengl-profile)
+     (context-no-error :boolean)
+     (context-release-behavior '%glfw::release-behavior)))
   (let ((window (%glfw:create-window width height title monitor shared)))
     (if (cffi:null-pointer-p window)
 	(error "Error creating window.")
