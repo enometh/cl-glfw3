@@ -135,6 +135,15 @@
 (defvar *window* nil
   "The window that is currently the default for this library. Can be set through MAKE-CONTEXT-CURRENT.")
 
+
+;; The Burden of Maintainer: keyword hints that are "hard constraints"
+;; (see "Window Guide" in glfw3 docs) should have a <hint>-supplied-p
+;; binding in the create-window function lambda list, and should be
+;; also specified in the hardcoded list in macrolet output-hints.
+;; this arranges for glfwWindowHint to be called only when the caller
+;; has explicitly specified them.  this avoids the risk of an unusable
+;; context being created by specifying an incompatible default value
+;; for that hard constraint hint.
 (defun create-window (&key
 			(width 0) (height 0)
 			title
@@ -151,26 +160,33 @@
 			(aux-buffers 0)
 			(samples 0)
 			(refresh-rate 0)
-			(stereo nil)
+			(stereo nil stereo-supplied-p)
 			(srgb-capable nil)
-			(client-api :opengl-api)
+			(client-api :opengl-api client-api-supplied-p)
 			(context-version-major 1)
 			(context-version-minor 0)
 			(context-robustness :no-robustness)
-			(opengl-forward-compat nil)
+			(opengl-forward-compat nil opengl-forward-compat-supplied-p)
 			(opengl-debug-context nil)
-			(opengl-profile :opengl-any-profile))
+			(opengl-profile :opengl-any-profile opengl-profile-supplied-p))
   "This function handles all window hints.
 
 MONITOR: The monitor on which the window should be full-screen.
 SHARED: The window whose context to share resources with."
   (macrolet ((output-hints (&rest hints)
 	       `(progn
-		  ,@(loop for (name type) in hints collect
-			 `(%glfw:window-hint
-			   ,(intern (string-upcase
-				    (symbol-name name)) :keyword)
-			   (cffi:convert-to-foreign ,name ,type))))))
+		  ,@(loop for (name type) in hints
+			  for key = (intern (string-upcase (symbol-name name))
+					    :keyword)
+			  for expansion = `(%glfw:window-hint
+					    ,key
+					    (cffi:convert-to-foreign ,name ,type))
+			  if (find key '(:stereo :client-api :opengl-forward-compat
+					 :opengl-profile))
+			  collect `(when ,(intern (concatenate 'string (string name)
+							       "-SUPPLIED-P"))
+				     ,expansion)
+			  else collect expansion))))
     (output-hints
      (resizable :boolean)
      (visible :boolean)
