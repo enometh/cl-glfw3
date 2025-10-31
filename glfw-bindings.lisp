@@ -388,14 +388,19 @@ CFFI's defcallback that takes care of GLFW specifics."
   (:samples #X0002100d)
   (:srgb-capable #X0002100E)
   (:refresh-rate #X0002100F)
+  (:doublebuffer #x00021010)
   (:client-api #X00022001)
   (:context-version-major #x00022002)
   (:context-version-minor #x00022003)
   (:context-revision #x00022004)
   (:context-robustness #x00022005)
   (:opengl-forward-compat #x00022006)
+  (:context-debug #x00022007)
   (:opengl-debug-context #x00022007)
-  (:opengl-profile #X00022008))
+  (:opengl-profile #X00022008)
+  (:context-release-behavior #x00022009)
+  (:context-no-error #x0002200A)
+  (:context-creation-api #x0002200B))
 
 (defcenum (opengl-api)
   (:no-api 0)
@@ -425,6 +430,16 @@ CFFI's defcallback that takes care of GLFW specifics."
   (:normal #X00034001)
   (:hidden #X00034002)
   (:disabled #X00034003))
+
+(defcenum (release-behavior)
+  (:any-release-behavior 0)
+  (:release-behavior-flush #x00035001)
+  (:release-behavior-none #x00035002))
+
+(defcenum (creation-api)
+  (:native-context-api #x00036001)
+  (:egl-context-api #x00036002)
+  (::osmesa-context-api #x00036003))
 
 (defcenum (vk-result :int)
   (:error-native-window-in-use-khr -1000000001) ;; returned by glfwCreateWindowSurface if the window has not been created with GLFW_NO_API
