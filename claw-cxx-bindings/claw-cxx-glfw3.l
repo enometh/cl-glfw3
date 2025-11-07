@@ -57,9 +57,11 @@
                            ((:and :x86 :linux) "i686-pc-linux-gnu"))
                           (:include-definitions "^[gG][lL][fF][wW]"))
   :in-package "CLAW-CXX-GLFW3"
-  :trim-enum-prefix nil
+  :trim-enum-prefix t
   :recognize-bitfields t
   :recognize-strings t
+  :symbolicate-names (:in-pipeline
+		      (:by-removing-prefixes "glfw" "GLFW_"))
   :with-adapter nil #+nil (:dynamic :path "lib/adapter.c"))
 
 #+nil
