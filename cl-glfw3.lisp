@@ -501,4 +501,10 @@ SHARED: The window whose context to share resources with."
                %glfw:vulkan-supported-p
                %glfw:get-required-instance-extensions
                %glfw:get-instance-proc-address
-               %glfw:physical-device-presentation-support-p)
+               %glfw:physical-device-presentation-support-p
+	       %glfw:init-hint
+	       %glfw:init-allocator
+	       %glfw:init-vulkan-loader
+	       %glfw:get-error
+	       %glfw:get-platform
+	       %glfw:platform-supported)
