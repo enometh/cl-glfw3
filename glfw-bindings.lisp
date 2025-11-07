@@ -7,6 +7,12 @@
 (export
  '(+dont-care+
    init
+   init-hint
+   init-allocator
+   init-vulkan-loader
+   get-error
+   get-platform
+   platform-supported
    terminate
    get-version
    get-version-string
@@ -357,6 +363,7 @@ CFFI's defcallback that takes care of GLFW specifics."
   (:last 15))
 
 (defcenum (errors)
+  (:no-error 0)
   (:not-initialized #x00010001)
   (:no-current-context #x00010002)
   (:invalid-enum #X00010003)
@@ -365,7 +372,12 @@ CFFI's defcallback that takes care of GLFW specifics."
   (:api-unavailable #X00010006)
   (:version-unavailable #x00010007)
   (:platform-error #X00010008)
-  (:format-unavailable #x00010009))
+  (:format-unavailable #x00010009)
+  (:no-window-context #x0001000a)
+  (:cursor-unavailable #x0001000b)
+  (:feature-unavailable #x0001000c)
+  (:feature-unimplemented #x0001000d)
+  (:platform-unavailable #x0001000e))
 
 (defcenum (window-hint)
   (:focused #X00020001)
@@ -373,6 +385,15 @@ CFFI's defcallback that takes care of GLFW specifics."
   (:resizable #X00020003)
   (:visible #X00020004)
   (:decorated #X00020005)
+  (:floating #x00020007)
+  (:maximized #x00020008)
+  (:center-cursor #x00020009)
+  (:transparent-framebuffer #x0002000a)
+  (:hovered #x0002000b)
+  (:focus-on-show #x0002000c)
+  (:mouse-passthrough #x0002000d)
+  (:position-x #x0002000e)
+  (:position-y #x0002000f)
   (:red-bits #X00021001)
   (:green-bits #X00021002)
   (:blue-bits #X00021003)
@@ -400,7 +421,15 @@ CFFI's defcallback that takes care of GLFW specifics."
   (:opengl-profile #X00022008)
   (:context-release-behavior #x00022009)
   (:context-no-error #x0002200A)
-  (:context-creation-api #x0002200B))
+  (:context-creation-api #x0002200B)
+  (:scale-to-monitor #x0002200c)
+  (:cocoa-retina-framebuffer #x00023001)
+  (:cocoa-frame-name #x00023002)
+  (:cocoa-graphics-switching #x00023003)
+  (:x11-class-name #x00024001)
+  (:x11-instance-name #x00024002)
+  (:win32-keyboard-menu #x00025001)
+  (:wayland-app-id #x00026001))
 
 (defcenum (opengl-api)
   (:no-api 0)
@@ -429,7 +458,8 @@ CFFI's defcallback that takes care of GLFW specifics."
 (defcenum (cursor-mode)
   (:normal #X00034001)
   (:hidden #X00034002)
-  (:disabled #X00034003))
+  (:disabled #X00034003)
+  (:captured #x00034004))
 
 (defcenum (release-behavior)
   (:any-release-behavior 0)
@@ -440,6 +470,31 @@ CFFI's defcallback that takes care of GLFW specifics."
   (:native-context-api #x00036001)
   (:egl-context-api #x00036002)
   (::osmesa-context-api #x00036003))
+
+(defcenum (init-hint)
+  (:angle-platform-type-none     #x00037001)
+  (:angle-platform-type-opengl   #x00037002)
+  (:angle-platform-type-opengles #x00037003)
+  (:angle-platform-type-d3d9     #x00037004)
+  (:angle-platform-type-d3d11    #x00037005)
+  (:angle-platform-type-vulkan   #x00037007)
+  (:angle-platform-type-metal    #x00037008)
+  (:wayland-prefer-libdecor    #x00038001)
+  (:wayland-disable-libdecor   #x00038002)
+  (:joystick-hat-buttons   #x00050001)
+  (:angle-platform-type    #x00050002)
+  (:platform               #x00050003)
+  (:cocoa-chdir-resources  #x00051001)
+  (:cocoa-menubar          #x00051002)
+  (:x11-xcb-vulkan-surface #x00052001)
+  (:wayland-libdecor       #x00053001)
+  (:any-platform           #x00060000)
+  (:win32                  #x00060001)
+  (:cocoa                  #x00060002)
+  (:wayland                #x00060003)
+  (:x11                    #x00060004)
+  (:null-platform          #x00060005)
+  (:dont-care              -1))
 
 (defcenum (vk-result :int)
   (:error-native-window-in-use-khr -1000000001) ;; returned by glfwCreateWindowSurface if the window has not been created with GLFW_NO_API
@@ -477,6 +532,12 @@ CFFI's defcallback that takes care of GLFW specifics."
 ;;;; ## GLFW Functions
 (defcfun ("glfwInit" init) :boolean)
 (defcfun ("glfwTerminate" terminate) :void)
+(defcfun ("glfwInitHint" init-hint) :void (hint init-hint) (value init-hint))
+(defcfun ("glfwInitAllocator" init-allocator) :void (allocator :pointer))
+(defcfun ("glfwInitVulkanLoader" init-vulkan-loader) :void (loader :pointer))
+(defcfun ("glfwGetError" get-error) errors (description :pointer))
+(defcfun ("glfwGetPlatform" get-platform) init-hint)
+(defcfun ("glfwPlatformSupported" get-platform-supported) :bool (platform init-hint))
 
 (defun get-version ()
   "Returns major, minor, and revison numbers of GLFW library. May be called before INIT."
