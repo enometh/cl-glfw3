@@ -40,3 +40,84 @@
          do (render)
          do (swap-buffers)
          do (poll-events)))))
+
+#+nil
+(basic-window-example)
+
+;; may have load this file again if system is loaded
+#+nil
+(with-init-window (:title "Window test" :width 600 :height 400
+		   :context-version-major 1
+		   :context-version-minor 2
+		   :context-creation-api :egl-context-api ;; :native-context-api
+		   )
+  (setf %gl:*gl-get-proc-address* #'get-proc-address)
+  (set-key-callback 'quit-on-escape)
+  (set-window-size-callback 'update-viewport)
+  (gl:clear-color 0 0 0 0)
+  (set-viewport 600 400)
+  (loop until (window-should-close-p)
+        do (render)
+        do (swap-buffers)
+        do (poll-events)))
+
+
+;;; ----------------------------------------------------------------------
+;;;
+;;; two windows
+;;;
+
+(defmacro with-threadsafe-init (&body body)
+  "see WITH-INIT"
+  `(progn
+     (let ((prev-error-fun (set-error-callback 'cl-glfw3::default-error-fun)))
+       (unless (cffi:null-pointer-p prev-error-fun)
+	 (%glfw:set-error-callback prev-error-fun)))
+     (with-body-in-main-thread (:blocking t) (initialize))
+     (unwind-protect (progn ,@body)
+       (with-body-in-main-thread (:blocking t)
+	 (%glfw:terminate)))))
+
+(defun basic-two-window-example ()
+  (with-threadsafe-init
+    (let (windows)
+      (with-body-in-main-thread (:blocking t)
+	(push (create-window :title "Window Test1" :width 600
+			     :height 400 :visible t)
+	      windows)
+	(make-context-current nil))
+      (with-body-in-main-thread (:blocking t)
+	(push (create-window :title "Window Test2" :width 600
+			     :height 400 :visible t)
+	      windows)
+	(make-context-current nil))
+      (setf %gl:*gl-get-proc-address* #'get-proc-address)
+      (dolist (window windows)
+	(make-context-current window)
+	(set-key-callback 'quit-on-escape window)
+	(set-window-size-callback 'update-viewport window)
+	(gl:clear-color 0 0 0 0)
+	(set-viewport 600 400))
+
+      (loop while windows
+	    do (loop for window in windows
+		     while window
+		     do
+		     (cond ((window-should-close-p window)
+			    (with-body-in-main-thread (:blocking t)
+			      (destroy-window window))
+			    (setq windows (delete window windows
+						  :test #'cffi:pointer-eq)))
+			   (t (make-context-current window)
+			      (render)
+			      (swap-buffers window))))
+	    do (poll-events)))))
+#+nil
+(basic-two-window-example)
+
+#||
+(user:getenv "WAYLAND_DISPLAY")
+(user:setenv "WAYLAND_DISPLAY" "wayland-0")
+(glfw:init-hint :platform :wayland)
+(glfw:get-platform)
+||#
